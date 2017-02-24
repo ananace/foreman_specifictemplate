@@ -15,6 +15,16 @@ For instance; Windows installations.
 See [Plugins install instructions](https://theforeman.org/plugins/)
 for how to install Foreman plugins.
 
+## Usage
+
+```
+# Deploy 'PXELinux default local boot' for this host
+curl -X PUT "http://foreman.example.com/specifictemplate/PXELinux default local boot"
+
+# Restore this host to the default PXE template
+curl -X DELETE http://foreman.example.com/specifictemplate
+```
+
 ## Copyright
 
 Copyright (c) 2017 Alexander Olofsson
