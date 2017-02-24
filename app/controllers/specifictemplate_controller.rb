@@ -32,7 +32,8 @@ class SpecificTemplateController < ApplicationController
       next unless iface.tftp? || iface.tftp6?
 
       iface.send(:unique_feasible_tftp_proxies).each do |proxy|
-        iface.send(:mac_addresses_for_tftp).each do |mac|
+        mac_addresses = iface.respond_to?(:mac_addresses_for_tftp, true) && iface.send(:mac_addresses_for_tftp) || [mac]
+        mac_addresses.each do |mac|
           proxy.set(kind, mac_addr, :pxeconfig => content)
         end
       end
@@ -48,7 +49,11 @@ class SpecificTemplateController < ApplicationController
   
   def remove
     # All you need to do to return to proper TFTP settings
-    @host.recreate_config(['TFTP'])
+    @host.interfaces.each do |iface|
+      next unless iface.managed
+
+      iface.send :rebuild_tftp
+    end
   end
 
   private

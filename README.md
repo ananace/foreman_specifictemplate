@@ -8,7 +8,7 @@ For instance; Windows installations.
 
 | Foreman Version | Plugin Version |
 | --------------- | -------------- |
-| >= 1.15         | any            |
+| >= 1.14         | any            |
 
 ## Installation
 
