@@ -33,7 +33,7 @@ class SpecificTemplateController < ApplicationController
 
       iface.send(:unique_feasible_tftp_proxies).each do |proxy|
         mac_addresses = iface.respond_to?(:mac_addresses_for_tftp, true) && iface.send(:mac_addresses_for_tftp) || [mac]
-        mac_addresses.each do |mac|
+        mac_addresses.each do |mac_addr|
           proxy.set(kind, mac_addr, :pxeconfig => content)
         end
       end
