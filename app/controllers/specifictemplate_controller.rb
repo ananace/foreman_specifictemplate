@@ -19,6 +19,8 @@ class SpecifictemplateController < ApplicationController
   def update
     return false unless @host and @host.build?
 
+    # TODO? Detect PXELinux/PXEGrub/PXEGrub2/iPXE, @host.pxe_loader.split.first maybe
+    # Would mean templates could be provided with 'template_name=default local boot'
     template_name = params[:template_name]
     return remove unless template_name
 
@@ -31,7 +33,7 @@ class SpecifictemplateController < ApplicationController
     content = @host.render_template template
     raise Foreman::Exception.new(N_("Template '%s' didn't render correctly"), template.name) unless content
 
-    logger.info "Deploying forced TFTP #{kind} configuration for #{@host.name} from template #{template.name}"
+    logger.info "Deploying requested #{kind} configuration for #{@host.name} from template '#{template.name}'"
     @host.interfaces.each do |iface|
       next unless iface.tftp? || iface.tftp6?
 
@@ -43,7 +45,7 @@ class SpecifictemplateController < ApplicationController
       end
     end
 
-    true
+    render :plain => ''
   rescue => e
     render_error(
       :message => 'Failed to set PXE to template %{template_name}: %{error}',
@@ -63,7 +65,7 @@ class SpecifictemplateController < ApplicationController
       iface.send :rebuild_tftp
     end
 
-    true
+    render :plain => ''
   rescue => e
     render_error(
       :message => 'Failed to reset PXE for host %{host}: %{error}',
