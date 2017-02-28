@@ -115,7 +115,7 @@ class SpecifictemplateController < ApplicationController
       search = { :ip => ip }
     end
 
-    host = Host.joins(:provision_interface).where(:nics => { :ip => ip }).first
+    host = Host.joins(:provision_interface).where(:nics => search).first
     host ? Host.find(host.id) : nil
   end
 
