@@ -1,3 +1,5 @@
+require 'ipaddr'
+
 class SpecifictemplateController < ApplicationController
   # Skip default filters for specific template actions
   FILTERS = [
@@ -107,6 +109,12 @@ class SpecifictemplateController < ApplicationController
     ip = ip.split(',').first
 
     # host is readonly because of association so we reload it if we find it
+    if IPAddr.new(ip).ipv6?
+      search = { :ip6 => ip }
+    else 
+      search = { :ip => ip }
+    end
+
     host = Host.joins(:provision_interface).where(:nics => { :ip => ip }).first
     host ? Host.find(host.id) : nil
   end
