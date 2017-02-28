@@ -17,12 +17,14 @@ for how to install Foreman plugins.
 
 ## Usage
 
+**NB**: This plugin only allows deploying PXE templates for hosts currently in build mode.
+
 ```
 # Deploy 'PXELinux default local boot' for this host
-curl -X PUT "http://foreman.example.com/specifictemplate/PXELinux default local boot"
+curl "http://foreman.example.com/specifictemplate/set?template_name=PXELinux%20default%20local%20boot"
 
 # Restore this host to the default PXE template
-curl -X DELETE http://foreman.example.com/specifictemplate
+curl http://foreman.example.com/specifictemplate/set
 ```
 
 ## Copyright
