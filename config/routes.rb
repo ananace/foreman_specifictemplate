@@ -1,8 +1,9 @@
 Rails.application.routes.draw do
-  put 'specifictemplate/:template_name',
+  # get 'specifictemplate',
+  #   :controller => 'specifictemplate',
+  #   :action => 'check'
+  get 'specifictemplate/set',
     :controller => 'specifictemplate',
-    :action => 'update'
-  delete 'specifictemplate',
-    :controller => 'specifictemplate',
-    :action => 'remove'
+    :action => 'update',
+    :format => 'text'
 end

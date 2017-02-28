@@ -1,4 +1,4 @@
-class SpecificTemplateController < ApplicationController
+class SpecifictemplateController < ApplicationController
   # Skip default filters for specific template actions
   FILTERS = [
     :require_login,
@@ -16,18 +16,22 @@ class SpecificTemplateController < ApplicationController
   before_action :skip_secure_headers
   before_action :find_host
 
-  def update(template_name)
+  def update
+    return false unless @host and @host.build?
+
+    template_name = params[:template_name]
+    return remove unless template_name
+
     template = ProvisioningTemplate.find_by_name(template_name)
     raise Foreman::Exception.new(N_("Template '%s' was not found"), template_name) unless template
 
-    kind = template.try :kind
-    raise Foreman::Exception.new(N_("Template '%s' is of unknown kind"), template_name) unless kind
-    raise Foreman::Exception.new(N_("Template '%s' (of kind %s) is not valid for OS"), template_name, kind) unless @host.operatingsystem.template_kinds.include?(kind)
+    kind = template.template_kind.name
+    raise Foreman::Exception.new(N_("%s does not support templates of type %s"), @host.operatingsystem, kind) unless @host.operatingsystem.template_kinds.include?(kind)
 
-    content = unattended_render template, template_name
-    raise Foreman::Exception.new(N_("Template '%s' didn't render correctly"), template_name unless content
+    content = @host.render_template template
+    raise Foreman::Exception.new(N_("Template '%s' didn't render correctly"), template.name) unless content
 
-    logger.info "Deploying forced TFTP #{kind} configuration for #{@host.name} from template #{template_name}"
+    logger.info "Deploying forced TFTP #{kind} configuration for #{@host.name} from template #{template.name}"
     @host.interfaces.each do |iface|
       next unless iface.tftp? || iface.tftp6?
 
@@ -38,6 +42,8 @@ class SpecificTemplateController < ApplicationController
         end
       end
     end
+
+    true
   rescue => e
     render_error(
       :message => 'Failed to set PXE to template %{template_name}: %{error}',
@@ -48,12 +54,23 @@ class SpecificTemplateController < ApplicationController
   end
   
   def remove
+    logger.info "Resetting forced TFTP configuration for #{@host.name}"
+
     # All you need to do to return to proper TFTP settings
     @host.interfaces.each do |iface|
       next unless iface.managed
 
       iface.send :rebuild_tftp
     end
+
+    true
+  rescue => e
+    render_error(
+      :message => 'Failed to reset PXE for host %{host}: %{error}',
+      :status => :error,
+      :host => @host,
+      :error => e
+    )
   end
 
   private
