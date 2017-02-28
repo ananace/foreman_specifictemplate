@@ -19,7 +19,7 @@ class SpecifictemplateController < ApplicationController
   before_action :find_host
 
   def update
-    return false unless @host and @host.build?
+    return render(:plain => 'Host not in build mode') unless @host and @host.build?
 
     # TODO? Detect PXELinux/PXEGrub/PXEGrub2/iPXE, @host.pxe_loader.split.first maybe
     # Would mean templates could be provided with 'template_name=default local boot'
@@ -29,6 +29,8 @@ class SpecifictemplateController < ApplicationController
     template = ProvisioningTemplate.find_by_name(template_name)
     raise Foreman::Exception.new(N_("Template '%s' was not found"), template_name) unless template
 
+    # TODO; Check that the template is of the correct PXE type, not just that the OS
+    # allows using that type. Don't want to deploy PXELinux on a PXEGrub2 host.
     kind = template.template_kind.name
     raise Foreman::Exception.new(N_("%s does not support templates of type %s"), @host.operatingsystem, kind) unless @host.operatingsystem.template_kinds.include?(kind)
 
@@ -40,7 +42,7 @@ class SpecifictemplateController < ApplicationController
       next unless iface.tftp? || iface.tftp6?
 
       iface.send(:unique_feasible_tftp_proxies).each do |proxy|
-        mac_addresses = iface.respond_to?(:mac_addresses_for_tftp, true) && iface.send(:mac_addresses_for_tftp) || [mac]
+        mac_addresses = iface.try(:mac_addresses_for_tftp) || [iface.mac]
         mac_addresses.each do |mac_addr|
           proxy.set(kind, mac_addr, :pxeconfig => content)
         end
