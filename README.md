@@ -22,9 +22,11 @@ for how to install Foreman plugins.
 ```
 # Deploy 'PXELinux default local boot' for this host
 curl "http://foreman.example.com/specifictemplate/set?template_name=PXELinux%20default%20local%20boot"
+curl "http://foreman.example.com/unattended/specifictemplate?template_name=PXELinux%20default%20local%20boot"
 
 # Restore this host to the default PXE template
 curl http://foreman.example.com/specifictemplate/set
+curl http://foreman.example.com/unattended/specifictemplate
 ```
 
 ## Copyright
