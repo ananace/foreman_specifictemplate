@@ -9,10 +9,16 @@ module ForemanSpecifictemplate
 
     def host_template_with_specifictemplate
       if params[:kind] == 'specifictemplate'
-        controller = SpecifictemplateController.new
-        controller.request = request
-        controller.response = response
-        controller.process(:update)
+        if params[:redirect] == 'true'
+          redirect_to url_for(controller: :specifictemplate, action: :update, template_name: params[:template_name])
+        else
+          controller = SpecifictemplateController.new
+          controller.request = @_request
+          controller.response = @_response
+          controller.params = params
+          controller.process(:update)
+          render text: controller.response.body, status: controller.response.response_code, content_type: controller.response.content_type
+        end
       else
         host_template_without_specifictemplate
       end

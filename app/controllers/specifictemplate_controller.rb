@@ -88,8 +88,8 @@ class SpecifictemplateController < ApplicationController
   def render_error(options)
     status = options.delete(:status) || :not_found
     message = options.delete(:message) % options
-    Foreman::Logging.exception(message, options[:error])
-    render :text => message, :status => status
+    logger.error message
+    render :text => message, :status => status, :content_type => 'text/plain'
   end
 
   def find_host
