@@ -12,10 +12,10 @@ module ForemanSpecifictemplate
         controller = SpecifictemplateController.new
         controller.request = request
         controller.response = response
-        return controller.process(:update)
+        controller.process(:update)
+      else
+        host_template_without_specifictemplate
       end
-
-      host_template_without_specifictemplate
     end
 
     def load_template_vars_with_specifictemplate

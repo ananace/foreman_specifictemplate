@@ -49,7 +49,7 @@ class SpecifictemplateController < ApplicationController
       end
     end
 
-    render :plain => ''
+    render :inline => "Template <%= params[:template_name] %> was deployed successfully."
   rescue => e
     render_error(
       :message => 'Failed to set PXE to template %{template_name}: %{error}',
@@ -86,10 +86,10 @@ class SpecifictemplateController < ApplicationController
   end
 
   def render_error(options)
-    message = options.delete(:message)
     status = options.delete(:status) || :not_found
-    logger.error message % options
-    render :plain => "#{message % options}\n", :status => status
+    message = options.delete(:message) % options
+    Foreman::Logging.exception(message, options[:error])
+    render :text => message, :status => status
   end
 
   def find_host
