@@ -5,6 +5,7 @@ module ForemanSpecifictemplate
     included do
       alias_method_chain :host_template, :specifictemplate
       alias_method_chain :load_template_vars, :specifictemplate
+      alias_method_chain :build, :specifictemplate
     end
 
     def host_template_with_specifictemplate
@@ -26,6 +27,16 @@ module ForemanSpecifictemplate
 
     def load_template_vars_with_specifictemplate
       load_template_vars_without_specifictemplate unless params[:kind] == 'specifictemplate'
+    end
+
+    def built_with_specifictemplate
+      begin
+        @host.parameters.where(name: 'specifictemplate').each(&:destroy)
+      rescue => e
+        logger.error e.message
+      end
+
+      built_without_specifictemplate
     end
   end
 end

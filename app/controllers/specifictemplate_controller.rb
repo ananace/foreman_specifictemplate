@@ -38,6 +38,12 @@ class SpecifictemplateController < ApplicationController
     raise Foreman::Exception.new(N_("Template '%s' didn't render correctly"), template.name) unless content
 
     logger.info "Deploying requested #{kind} configuration for #{@host.name} from template '#{template.name}'"
+
+    @host.parameters.where(name: 'specifictemplate').first_or_initialize.tap do |p|
+      p.value = template_name
+      p.save
+    end
+
     @host.interfaces.each do |iface|
       next unless iface.tftp? || iface.tftp6?
 
@@ -61,6 +67,7 @@ class SpecifictemplateController < ApplicationController
   
   def remove
     logger.info "Resetting forced TFTP configuration for #{@host.name}"
+    remove_specifictemplate_param
 
     # All you need to do to return to proper TFTP settings
     @host.interfaces.each do |iface|
@@ -80,6 +87,10 @@ class SpecifictemplateController < ApplicationController
   end
 
   private
+
+  def remove_specifictemplate_param
+    @host.parameters.where(name: 'specifictemplate').each(&:destroy)
+  end
 
   def skip_secure_headers
     SecureHeaders.opt_out_of_all_protection(request)
