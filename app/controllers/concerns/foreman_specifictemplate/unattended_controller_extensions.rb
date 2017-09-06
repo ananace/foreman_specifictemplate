@@ -5,7 +5,7 @@ module ForemanSpecifictemplate
     included do
       alias_method_chain :host_template, :specifictemplate
       alias_method_chain :load_template_vars, :specifictemplate
-      alias_method_chain :build, :specifictemplate
+      alias_method_chain :built, :specifictemplate
     end
 
     def host_template_with_specifictemplate
