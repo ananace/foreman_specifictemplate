@@ -22,10 +22,19 @@ class SpecifictemplateController < ApplicationController
   def update
     return render(:plain => 'Host not in build mode') unless @host and @host.build?
 
-    # TODO? Detect PXELinux/PXEGrub/PXEGrub2/iPXE, @host.pxe_loader.split.first maybe
-    # Would mean templates could be provided with 'template_name=default local boot'
+    template_type = params[:template_type].downcase.to_sym
+    raise Foreman::Exception.new(N_("Template type '%s' unknown"), template_type) unless template_type.nil? or %i(local default).include?(template_type)
     template_name = params[:template_name]
-    return remove unless template_name
+    return remove unless template_name or template_type
+
+    if template_type
+      if template_type == :local
+        iface = @host.provision_interface
+        template_name = iface.send(:local_boot_template_name, kind)
+      else
+        template_name = @host.provisioning_template(kind: kind).name
+      end
+    end
 
     template = ProvisioningTemplate.find_by_name(template_name)
     raise Foreman::Exception.new(N_("Template '%s' was not found"), template_name) unless template
@@ -35,10 +44,20 @@ class SpecifictemplateController < ApplicationController
     kind = template.template_kind.name
     raise Foreman::Exception.new(N_("%s does not support templates of type %s"), @host.operatingsystem, kind) unless @host.operatingsystem.template_kinds.include?(kind)
 
+    # Set up template rendering parameters
+    @kernel = host.operatingsystem.kernel(host.arch)
+    @initrd = host.operatingsystem.initrd(host.arch)
+    if host.operatingsystem.respond_to?(:mediumpath)
+      @mediapath = host.operatingsystem.mediumpath(host)
+    end
+    if host.operatingsystem.respond_to?(:xen)
+      @xen = host.operatingsystem.xen(host.arch)
+    end
+
     content = @host.render_template template
     raise Foreman::Exception.new(N_("Template '%s' didn't render correctly"), template.name) unless content
 
-    logger.info "Deploying requested #{kind} configuration for #{@host.name} from template '#{template.name}'"
+    logger.info "Deploying requested #{kind} configuration for #{@host.name} from template '#{template_name}'"
 
     @host.parameters.where(name: 'specifictemplate').first_or_initialize.tap do |p|
       p.value = template_name
