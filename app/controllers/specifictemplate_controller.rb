@@ -27,9 +27,9 @@ class SpecifictemplateController < ApplicationController
     template_name = params[:template_name]
     return remove unless template_name or template_type
 
+    iface = @host.provision_interface
     if template_type
       if template_type == :local
-        iface = @host.provision_interface
         template_name = iface.send(:local_boot_template_name, kind)
       else
         template_name = @host.provisioning_template(kind: kind).name
@@ -64,14 +64,10 @@ class SpecifictemplateController < ApplicationController
       p.save
     end
 
-    @host.interfaces.each do |iface|
-      next unless iface.tftp? || iface.tftp6?
-
-      iface.send(:unique_feasible_tftp_proxies).each do |proxy|
-        mac_addresses = iface.try(:mac_addresses_for_tftp) || [iface.mac]
-        mac_addresses.each do |mac_addr|
-          proxy.set(kind, mac_addr, :pxeconfig => content)
-        end
+    iface.send(:unique_feasible_tftp_proxies).each do |proxy|
+      mac_addresses = iface.try(:mac_addresses_for_tftp) || [iface.mac]
+      mac_addresses.each do |mac_addr|
+        proxy.set(kind, mac_addr, :pxeconfig => content)
       end
     end
 
