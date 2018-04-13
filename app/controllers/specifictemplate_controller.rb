@@ -27,11 +27,15 @@ class SpecifictemplateController < ApplicationController
     template_name = params[:template_name]
     return remove unless template_name or template_type
 
+    if template_name and template_type
+      logger.warn 'Template specified with both name and type, name will be ignored.'
+    end
+
     iface = @host.provision_interface
     if template_type
       if template_type == :local
         template_name = iface.send(:local_boot_template_name, kind)
-      else
+      elsif template_type == :default
         template_name = @host.provisioning_template(kind: kind).name
       end
     end
@@ -57,7 +61,7 @@ class SpecifictemplateController < ApplicationController
     content = @host.render_template template
     raise Foreman::Exception.new(N_("Template '%s' didn't render correctly"), template.name) unless content
 
-    logger.info "Deploying requested #{kind} configuration for #{@host.name} from template '#{template_name}'"
+    logger.info "Deploying requested #{kind} configuration for #{@host.name} / #{iface.mac} from template '#{template_name}'"
 
     @host.parameters.where(name: 'specifictemplate').first_or_initialize.tap do |p|
       p.value = template_name
@@ -71,7 +75,7 @@ class SpecifictemplateController < ApplicationController
       end
     end
 
-    render :inline => "Template <%= params[:template_name] %> was deployed successfully."
+    render :inline => "Success. Template <%= template_name %> was deployed successfully.\n"
   rescue => e
     render_error(
       :message => 'Failed to set PXE to template %{template_name}: %{error}',
