@@ -12,7 +12,7 @@ module ForemanSpecifictemplate
 
     config.to_prepare do
       begin
-        ::UnattendedController.send :include, ForemanSpecifictemplate::UnattendedControllerExtensions
+        ::UnattendedController.send :prepend, ForemanSpecifictemplate::UnattendedControllerExtensions
       rescue => e
         Rails.logger.warn "ForemanSpecifictemplate: skipping engine hook (#{e}, #{e.backtrace})"
       end

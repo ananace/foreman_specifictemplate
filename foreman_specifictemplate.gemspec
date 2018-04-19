@@ -15,6 +15,8 @@ Gem::Specification.new do |s|
   s.files = Dir['{app,config,db,lib,locale}/**/*'] + ['LICENSE', 'Rakefile', 'README.md']
   s.test_files = Dir['test/**/*']
 
+  s.required_ruby_version = '>= 2.0.0' # Module#prepend
+
   s.add_development_dependency 'rake'
   s.add_development_dependency 'rubocop'
   s.add_development_dependency 'rdoc'
